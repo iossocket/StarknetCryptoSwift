@@ -1,0 +1,11 @@
+# Rust
+Rust/target/
+
+# Xcode / SPM
+.build/
+*.xcodeproj
+*.xcworkspace
+DerivedData/
+
+# macOS
+.DS_Store

@@ -1,0 +1,16 @@
+[package]
+name = "starknet-crypto-ffi"
+version = "0.1.0"
+edition = "2021"
+description = "C FFI for Starknet crypto (Pedersen, Poseidon, ECDSA) based on starknet-crypto"
+
+[lib]
+# rlib: required for `cargo test` (integration tests link against the crate)
+# staticlib: used by build_xcframework.sh for iOS/macOS .a
+crate-type = ["rlib", "staticlib", "cdylib"]
+
+[dependencies]
+starknet-crypto = "0.8"
+
+[dev-dependencies]
+starknet-crypto = "0.8"

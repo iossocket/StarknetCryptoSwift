@@ -1,0 +1,4 @@
+module StarknetCryptoFFI {
+    header "StarknetCryptoFFI.h"
+    export *
+}
