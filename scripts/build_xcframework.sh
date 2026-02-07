@@ -59,9 +59,10 @@ xcodebuild -create-xcframework \
   -output "$OUT_DIR/$XCFRAMEWORK_NAME.xcframework"
 
 # Add module.modulemap to each slice so Swift can import the C module
-for slice in "$OUT_DIR/$XCFRAMEWORK_NAME.xcframework"/*/ ; do
-  if [ -d "$slice/Headers" ]; then
-    cp "$RUST_DIR/module.modulemap" "$slice/Headers/"
+XCFW="$OUT_DIR/$XCFRAMEWORK_NAME.xcframework"
+for name in ios-arm64 ios-arm64_x86_64-simulator macos-arm64_x86_64; do
+  if [ -d "$XCFW/$name/Headers" ]; then
+    cp "$RUST_DIR/module.modulemap" "$XCFW/$name/Headers/"
   fi
 done
 
@@ -69,7 +70,3 @@ rm -f "$IOS_SIM_A" "$MACOS_A"
 rm -rf "$HEADERS_DIR"
 
 echo "Done: $OUT_DIR/$XCFRAMEWORK_NAME.xcframework"
-</think>
-Checking the xcframework structure and fixing the script.
-<｜tool▁calls▁begin｜><｜tool▁call▁begin｜>
-WebSearch
