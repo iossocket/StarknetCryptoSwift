@@ -6,12 +6,13 @@ A standalone Swift Package Manager (SPM) package that exposes Starknet crypto (P
 
 ## Features
 
-| Capability               | Swift API                                                           | Description                                      |
-| ------------------------ | ------------------------------------------------------------------- | ------------------------------------------------ |
-| Pedersen Hash            | `PedersenHash.hash(_:_:)`                                           | Two 32-byte (LE) inputs → 32 bytes               |
-| Poseidon Hash            | `PoseidonHash.hash(_:_:)` / `PoseidonHash.hash(_:)`                 | Multiple Felts → single Felt (Hades)             |
-| Stark curve ECDSA        | `StarkSigner.sign` / `StarkSigner.verify` / `StarkSigner.publicKey` | Sign, verify, public key derivation              |
-| RFC 6979 deterministic k | `StarkSigner.rfc6979Nonce(messageHash:privateKey:seed:)`            | Derive k from hash + private key + optional seed |
+| Capability               | Swift API                                                           | Description                                                                 |
+| ------------------------ | ------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| Pedersen Hash            | `PedersenHash.hash(_:_:)`                                           | Two 32-byte (LE) inputs → 32 bytes                                          |
+| Poseidon (direct Hades)  | `PoseidonHash.hashDirect(_:_:)` / `PoseidonHash.hashSingle(_:)`     | Two inputs `[a,b,2]` or single `[v,0,1]`; used in StarkNet transaction hash |
+| Poseidon (sponge/many)   | `PoseidonHash.hash(_:_:)` / `PoseidonHash.hash(_:)`                 | Two Felts via hash_many, or arbitrary list → single Felt                    |
+| Stark curve ECDSA        | `StarkSigner.sign` / `StarkSigner.verify` / `StarkSigner.publicKey` | Sign, verify, public key derivation                                         |
+| RFC 6979 deterministic k | `StarkSigner.rfc6979Nonce(messageHash:privateKey:seed:)`            | Derive k from hash + private key + optional seed                            |
 
 All inputs and outputs are **32-byte little-endian** (Starknet Felt representation).
 
@@ -20,7 +21,7 @@ All inputs and outputs are **32-byte little-endian** (Starknet Felt representati
 ```swift
 // Package.swift
 dependencies: [
-    .package(url: "https://github.com/your-username/StarknetCryptoSwift.git", from: "0.1.0"),
+    .package(url: "https://github.com/iossocket/StarknetCryptoSwift.git", from: "0.1.2"),
 ],
 targets: [
     .target(name: "YourTarget", dependencies: ["StarknetCrypto"]),
@@ -33,7 +34,10 @@ import StarknetCrypto
 // Pedersen
 let hash = try PedersenHash.hash(a, b)  // Data, Data -> Data
 
-// Poseidon
+// Poseidon: direct Hades (transaction hash)
+let hDirect = try PoseidonHash.hashDirect(a, b)   // [a, b, 2] → state[0]
+let hSingle = try PoseidonHash.hashSingle(value)  // [v, 0, 1] → state[0]
+// Poseidon: two Felts or many
 let h2 = try PoseidonHash.hash(a, b)
 let hN = try PoseidonHash.hash([felt1, felt2, felt3])
 
@@ -51,7 +55,7 @@ The package uses a **binaryTarget** pointing at a prebuilt `StarknetCrypto.xcfra
 1. Install Rust and set the default toolchain:  
    `rustup default stable`
 2. Add iOS/macOS targets:  
-   `rustup target add aarch64-apple-ios aarch64-apple-ios-simulator x86_64-apple-ios-simulator aarch64-apple-darwin x86_64-apple-darwin`
+   `rustup target add aarch64-apple-ios aarch64-apple-ios-sim x86_64-apple-ios aarch64-apple-darwin x86_64-apple-darwin`
 3. From the repository root, run:  
    `./scripts/build_xcframework.sh`
 
@@ -84,7 +88,7 @@ cd Rust && cargo test
 ```
 
 - `tests/pedersen_test.rs`: Pedersen FFI matches `starknet_crypto::pedersen_hash`; null pointer returns error.
-- `tests/poseidon_test.rs`: Poseidon hash_2 / hash_many match the library; null/empty input errors.
+- `tests/poseidon_test.rs`: Poseidon direct hash, hash_single, hash_2, hash_many match the library; null/empty input errors.
 - `tests/ecdsa_test.rs`: Public key, RFC 6979, sign/verify match `starknet_crypto`; null pointer errors.
 
 **Swift** (requires a built xcframework):

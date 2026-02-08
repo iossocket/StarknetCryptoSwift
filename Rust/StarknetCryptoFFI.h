@@ -13,7 +13,13 @@ extern "C" {
 /// Pedersen hash of two Felts. Returns 0 on success, -1 on null/invalid args.
 int32_t starknet_crypto_pedersen_hash(const uint8_t *a_ptr, const uint8_t *b_ptr, uint8_t *out_ptr);
 
-/// Poseidon hash of two Felts. Returns 0 on success, -1 on null/invalid args.
+/// Poseidon direct Hades of two Felts (state = [a, b, 2], return state[0]). Returns 0 on success, -1 on null.
+int32_t starknet_crypto_poseidon_hash(const uint8_t *a_ptr, const uint8_t *b_ptr, uint8_t *out_ptr);
+
+/// Poseidon direct Hades single (state = [value, 0, 1], return state[0]). Returns 0 on success, -1 on null.
+int32_t starknet_crypto_poseidon_hash_single(const uint8_t *value_ptr, uint8_t *out_ptr);
+
+/// Poseidon hash of two Felts via hash_many. Returns 0 on success, -1 on null/invalid args.
 int32_t starknet_crypto_poseidon_hash_2(const uint8_t *a_ptr, const uint8_t *b_ptr, uint8_t *out_ptr);
 
 /// Poseidon hash of many Felts. inputs_ptr points to count*32 bytes (LE). Returns 0 on success, -1 null, -2 count 0.

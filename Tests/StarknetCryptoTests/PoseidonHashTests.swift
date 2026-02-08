@@ -6,6 +6,25 @@ import Foundation
 struct PoseidonHashTests {
     static let valid32 = Data(repeating: 0, count: 32)
 
+    @Test("hashDirect two Felts determinism")
+    func hashDirectDeterminism() throws {
+        let a = Data(repeating: 1, count: 32)
+        let b = Data(repeating: 2, count: 32)
+        let h1 = try PoseidonHash.hashDirect(a, b)
+        let h2 = try PoseidonHash.hashDirect(a, b)
+        #expect(h1 == h2)
+        #expect(h1.count == 32)
+    }
+
+    @Test("hashSingle determinism")
+    func hashSingleDeterminism() throws {
+        let v = Data(repeating: 42, count: 32)
+        let h1 = try PoseidonHash.hashSingle(v)
+        let h2 = try PoseidonHash.hashSingle(v)
+        #expect(h1 == h2)
+        #expect(h1.count == 32)
+    }
+
     @Test("Hash two Felts determinism")
     func determinism() throws {
         let a = Data(repeating: 1, count: 32)
