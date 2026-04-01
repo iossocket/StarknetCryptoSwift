@@ -70,27 +70,36 @@ public enum PoseidonHash {
     }
 
     /// Hash an arbitrary number of 32-byte Felts. Returns single 32-byte Felt (LE).
+    /// Empty input is valid — the Rust sponge returns hades([1,0,0])[0].
     public static func hash(_ elements: [Data]) throws -> Data {
         for el in elements {
             guard el.count == 32 else {
                 throw StarknetCryptoError.invalidHashInput
             }
         }
-        guard !elements.isEmpty else {
-            throw StarknetCryptoError.invalidHashInput
-        }
-        var contiguous = Data()
-        for el in elements {
-            contiguous.append(el)
-        }
         var out = Data(count: 32)
-        let code = contiguous.withUnsafeBytes { inputsRaw in
-            out.withUnsafeMutableBytes { outRaw in
+        let code: Int32
+        if elements.isEmpty {
+            code = out.withUnsafeMutableBytes { outRaw in
                 starknet_crypto_poseidon_hash_many(
-                    inputsRaw.baseAddress!.assumingMemoryBound(to: UInt8.self),
-                    elements.count,
+                    nil,
+                    0,
                     outRaw.baseAddress!.assumingMemoryBound(to: UInt8.self)
                 )
+            }
+        } else {
+            var contiguous = Data()
+            for el in elements {
+                contiguous.append(el)
+            }
+            code = contiguous.withUnsafeBytes { inputsRaw in
+                out.withUnsafeMutableBytes { outRaw in
+                    starknet_crypto_poseidon_hash_many(
+                        inputsRaw.baseAddress!.assumingMemoryBound(to: UInt8.self),
+                        elements.count,
+                        outRaw.baseAddress!.assumingMemoryBound(to: UInt8.self)
+                    )
+                }
             }
         }
         if code != 0 {

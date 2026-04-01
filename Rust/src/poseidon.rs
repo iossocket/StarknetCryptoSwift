@@ -82,13 +82,17 @@ pub extern "C" fn starknet_crypto_poseidon_hash_many(
     count: usize,
     out_ptr: *mut u8,
 ) -> i32 {
-    if inputs_ptr.is_null() || out_ptr.is_null() {
+    if out_ptr.is_null() {
         return -1;
     }
-    if count == 0 {
-        return -2;
+    if count > 0 && inputs_ptr.is_null() {
+        return -1;
     }
-    let slice = unsafe { std::slice::from_raw_parts(inputs_ptr, count * FELT_LEN) };
+    let slice = if count == 0 {
+        &[]
+    } else {
+        unsafe { std::slice::from_raw_parts(inputs_ptr, count * FELT_LEN) }
+    };
     let felts: Vec<Felt> = slice
         .chunks_exact(FELT_LEN)
         .map(|chunk| {

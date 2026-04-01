@@ -10,8 +10,12 @@ use starknet_crypto_ffi::{
     starknet_crypto_poseidon_hash_single,
 };
 use starknet_crypto::{poseidon_hash, poseidon_hash_many, poseidon_hash_single, Felt};
+use std::str::FromStr;
 
 const FELT_LEN: usize = 32;
+/// `computePoseidonHashOnElements([])` in starknet.js (canonical hex).
+const EMPTY_MANY_STARKNET_JS_HEX: &str =
+    "0x2272be0f580fd156823304800919530eaa97430e972d7213ee13f4fbf7a5dbc";
 
 fn felt_to_le_bytes(f: &Felt) -> [u8; FELT_LEN] {
     f.to_bytes_le()
@@ -112,14 +116,19 @@ fn poseidon_hash_many_single_element() {
 }
 
 #[test]
-fn poseidon_hash_many_empty_returns_error() {
-    let mut out = [0u8; FELT_LEN];
-    let code = starknet_crypto_poseidon_hash_many(
-        [0u8; FELT_LEN].as_ptr(),
-        0,
-        out.as_mut_ptr(),
+fn poseidon_hash_many_empty_ffi_matches_starknet_crypto() {
+    let expected = poseidon_hash_many(Vec::<&Felt>::new());
+    let expected_bytes = felt_to_le_bytes(&expected);
+    let starknet_js = Felt::from_str(EMPTY_MANY_STARKNET_JS_HEX).expect("valid felt hex");
+    assert_eq!(
+        expected, starknet_js,
+        "poseidon_hash_many([]) must match starknet.js computePoseidonHashOnElements([])"
     );
-    assert_eq!(code, -2);
+    let mut out = [0u8; FELT_LEN];
+    let code = starknet_crypto_poseidon_hash_many(std::ptr::null(), 0, out.as_mut_ptr());
+    assert_eq!(code, 0);
+    assert_eq!(out, expected_bytes);
+    assert_eq!(out, felt_to_le_bytes(&starknet_js));
 }
 
 #[test]
